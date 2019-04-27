@@ -14,4 +14,4 @@ Feature: GeriLife residents tests
   Scenario: Residents page adding residents
     Given the user opens the Residents page
     When the user adds a new resident
-    And the user adds a new departed resident
+#    And the user adds a new departed resident

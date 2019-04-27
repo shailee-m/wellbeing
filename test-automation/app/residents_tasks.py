@@ -60,10 +60,11 @@ def go_to_page(page):
 
 
 def add_resident(first_name, last_name, home, departed):
-    find_element(residents_add).click()
+    el = find_element(residents_add)
+    js_click(el)
     find_element_by_name("firstName").send_keys(first_name)
-    find_element_by_name("lastInitial").send_keys(last_name)
-    home_select = Select(find_element_by_name("homeId"))
+    find_elements("input[name=lastInitial]")[0].send_keys(last_name)
+    home_select = Select(find_elements("select[name=homeId]")[0])
     home_select.select_by_visible_text(home)
     if departed:
         find_element_by_name("departed").click()
