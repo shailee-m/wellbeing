@@ -53,11 +53,11 @@ Template.activityForm.helpers({
     // Check if current activity is available
     if (templateInstance.data && templateInstance.data.activity) {
       // form type is 'update'
-      return "update";
+      return "method-update";
     }
 
     // Default form type is 'insert'
-    return "insert";
+    return "method";
   },
   residentsSelectOptions() {
     const templateInstance = Template.instance();

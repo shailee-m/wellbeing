@@ -1,6 +1,7 @@
 import _ from 'lodash';
 import d3 from 'd3';
 import moment from 'moment';
+import { ResidentActivityMappingCollection } from '../../both/collections/residentActivityMapping';
 
 function getAllHomeReportAggregates() {
   try {
@@ -427,7 +428,11 @@ export default Meteor.methods({
     } catch (error) {
       return Meteor.Error(500, error.toString());
     }
-  }
+  },
+
+  saveActivity,
+
+  deleteActivity
 });
 
 
@@ -504,4 +509,38 @@ function aggregateActivitiesAndPopulateAggregateCollection() {
       }
     );
   });
+}
+
+function saveActivity(formData) {
+  if (!formData._id) {
+    const residentIds = [...formData.residentIds];
+    // delete formData.residentIds;
+
+    const activityId = Activities.insert(formData);
+
+    residentIds.forEach(residentId =>
+      ResidentActivityMappingCollection.insert({
+        activityId,
+        residentId,
+      })
+    );
+  } else {
+    const { _id, modifier } = formData;
+    const residentIds = [...modifier.$set.residentIds];
+    // delete modifier.$set.residentIds;
+    Activities.update({ _id }, modifier);
+
+    residentIds.forEach(residentId => {
+      ResidentActivityMappingCollection.update(
+        { residentId, activityId: _id },
+        { $set: { residentId, activityId: _id } },
+        { upsert: true }
+      );
+    });
+  }
+}
+
+function deleteActivity(activityId) {
+  Activities.remove({ _id: activityId });
+  ResidentActivityMappingCollection.remove({ activityId });
 }

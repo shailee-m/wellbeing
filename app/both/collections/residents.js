@@ -12,11 +12,11 @@ var ResidentsSchema = new SimpleSchema({
     autoform: {
       readonly() {
         /* For non admin users, editing an existing resident is not allowed */
-        return !isUserAdmin() ? !isEdit(this) : false;
+        return !isUserAdmin() ? !isEdit() : false;
       },
     },
     custom() {
-      if (!isUserAdmin() && isEdit(this)) {
+      if (!isUserAdmin() && isEdit()) {
         return 'notAllowed';
       }
       return undefined;
@@ -28,12 +28,12 @@ var ResidentsSchema = new SimpleSchema({
     autoform: {
       readonly() {
         /* For non admin users, editing an existing resident is not allowed */
-        return !isUserAdmin() ? !isEdit(this) : false;
+        return !isUserAdmin() ? !isEdit() : false;
       },
     },
     custom() {
       /* For non admin users, editing an existing resident is not allowed */
-      if (!isUserAdmin() && isEdit(this)) {
+      if (!isUserAdmin() && isEdit()) {
         return 'notAllowed';
       }
       return undefined;
@@ -65,18 +65,24 @@ Residents.helpers({
   },
   activities: function() {
     // Get resident ID
-    var residentId = this._id;
+    const residentId = this._id;
 
     // Get today's date
-    var now = moment().toDate();
+    const now = moment().toDate();
 
     // Get all activities involving resident
     // make sure activities are in the past (i.e. not planned)
     //  sort in reverse order by activity date
-    return Activities.find(
-      { residentIds: residentId, activityDate: { $lte: now } },
-      { sort: { activityDate: -1 } }
-    );
+    const activities = ResidentActivityMapping.find({
+      residentId,
+    })
+      .fetch()
+      .map(activityObject => activityObject.activityId);
+
+      return Activities.find(
+        { _id: { $in: activities }, activityDate: { $lte: now } },
+        { sort: { activityDate: -1 } }
+      );
   },
   recentActivities: function() {
     // Get resident ID
@@ -93,9 +99,15 @@ Residents.helpers({
     // Get all activities involving resident
     // make sure activities are in the past (i.e. not planned)
     //  sort in reverse order by activity date
+    const activityIds = ResidentActivityMapping.find({
+      residentId,
+    })
+      .fetch()
+      .map(activityObject => activityObject.activityId);
+
     return Activities.find(
       {
-        residentIds: residentId,
+        _id: { $in: activityIds },
         activityDate: { $gte: twoWeeksAgo, $lte: now },
       },
       { sort: { activityDate: -1 } }
@@ -185,7 +197,7 @@ function isUserAdmin() {
   return Roles.userIsInRole(userId, ['admin']);
 }
 
-function isEdit(that) {
+function isEdit() {
   return !!this.docId;
 }
 
