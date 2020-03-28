@@ -5,7 +5,7 @@ Template.activities.onCreated(function() {
   // Instance subscriptions
   // Activity types, residents, and homes
   instance.subscribe('allActivityTypes');
-
+  
   // Subscribe to user-visible residents and homes
   this.subscribe('currentUserVisibleResidents');
   this.subscribe('currentUserVisibleHomes');

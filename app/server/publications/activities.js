@@ -4,6 +4,10 @@ Meteor.publish("allActivities", function() {
   return Activities.find();
 });
 
+Meteor.publish('activityById',function(_id){
+  return Activities.find({ _id });
+})
+
 Meteor.publish("singleActivity", function(activityId) {
   return Activities.find(activityId);
 });

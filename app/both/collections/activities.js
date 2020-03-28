@@ -8,19 +8,10 @@ Meteor.startup(function () {
   if(Meteor.isServer) {
     // Make sure activityDate field is indexed for performance
     Activities._ensureIndex({'activityDate': 1});
-
-    // Make sure residentIds field is indexed for performance
-    Activities._ensureIndex({'residentIds': 1});
   }
 });
 
 var ActivitiesSchema = new SimpleSchema({
-  residentIds: {
-    type: Array,
-  },
-  'residentIds.$': {
-    type: String,
-  },
   activityTypeId: {
     type: String,
   },
@@ -51,11 +42,12 @@ Activities.attachSchema(ActivitiesSchema);
 Activities.helpers({
   residentNames: function () {
     // Get the Resident ID;
-    var residentIds = this.residentIds;
+    const activityId = this._id;
 
     // Get Resident(s) from Residents collection, by ID(s)
-    var residents = Residents.find({'_id': {$in: residentIds}}).fetch();
-
+    const residentIds = ResidentActivityMapping.find({ activityId }).fetch();
+    const residents = Residents.find({'_id': {$in: residentIds}}).fetch();
+    console.log("residents",residents)
     // Create an array of resident names
     var residentNamesArray = _.map(residents, function (resident) {
       return resident.firstName;
@@ -79,9 +71,8 @@ Activities.helpers({
     var activityDate = this.activityDate;
 
     // Format activity date
-    var activityDateFormatted = moment(activityDate).format("D.M.YYYY");
+   return moment(activityDate).format("D.M.YYYY");
 
-    return activityDateFormatted;
   },
   facilitatorRole: function () {
     // Get the facilitator Role ID
@@ -95,10 +86,7 @@ Activities.helpers({
   },
   timeAgo: function () {
     var activityDate = this.activityDate;
-
-    var timeAgo = moment(activityDate).fromNow();
-
-    return timeAgo;
+    return moment(activityDate).fromNow();
   }
 });
 
@@ -111,28 +99,16 @@ Activities.allow({
     var currentUserId = Meteor.userId();
 
     // Check if current user has Admin role
-    var currentUserIsAdmin = Roles.userIsInRole(currentUserId, ["admin"]);
+    return Roles.userIsInRole(currentUserId, ["admin"]);
 
-    // Only show edit column for users with Admin role
-    if (currentUserIsAdmin) {
-      return true;
-    } else {
-      return false;
-    }
   },
   remove: function () {
     // Get current user ID
     var currentUserId = Meteor.userId();
 
     // Check if current user has Admin role
-    var currentUserIsAdmin = Roles.userIsInRole(currentUserId, ["admin"]);
+    return Roles.userIsInRole(currentUserId, ["admin"]);
 
-    // Only show edit column for users with Admin role
-    if (currentUserIsAdmin) {
-      return true;
-    } else {
-      return false;
-    }
   }
 });
 

@@ -4,9 +4,9 @@ Template.deleteActivityConfirmation.events({
     const activityId = this.activity._id;
 
     // Delete Activity
-    Activities.remove(activityId, function () {
+    Meteor.call('deleteActivity', activityId, function() {
       // Dismiss the modal dialogue
-      Modal.hide("deleteActivityConfirmation");
+      Modal.hide('deleteActivityConfirmation');
       Session.set('activity-deleted', true);
     });
   }
